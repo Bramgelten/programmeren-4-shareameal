@@ -35,7 +35,7 @@ const INSERT_MEALS =
     "(1, 'Meal A', 'description', 'image url', NOW(), 5, 6.50, 1)," +
     "(2, 'Meal B', 'description', 'image url', NOW(), 5, 6.50, 1);"
 
-describe('Movies API', () => {
+describe('Users API', () => {
     //
     // informatie over before, after, beforeEach, afterEach:
     // https://mochajs.org/#hooks
@@ -48,7 +48,7 @@ describe('Movies API', () => {
         done()
     })
 
-    describe('UC201 Create movie', () => {
+    describe('UC201 Create user', () => {
         //
         beforeEach((done) => {
             console.log('beforeEach called')
@@ -75,7 +75,7 @@ describe('Movies API', () => {
 
         it('TC-201-1 should return valid error when required value is not present', (done) => {
             chai.request(server)
-                .post('/api/movie')
+                .post('/api/user')
                 .send({
                     // name is missing
                     year: 1234,
@@ -132,7 +132,7 @@ describe('Movies API', () => {
 
         it('TC-303-1 Lijst van maaltijden wordt succesvol geretourneerd', (done) => {
             chai.request(server)
-                .get('/api/movie')
+                .get('/api/user')
                 .end((err, res) => {
                     assert.ifError(err)
 
