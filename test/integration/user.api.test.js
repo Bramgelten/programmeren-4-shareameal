@@ -29,11 +29,11 @@ const INSERT_USER =
 /**
  * Query om twee meals toe te voegen. Let op de UserId, die moet matchen
  * met de user die je ook toevoegt.
- */
+
 const INSERT_MEALS =
     'INSERT INTO `meal` (`id`, `name`, `description`, `imageUrl`, `dateTime`, `maxAmountOfParticipants`, `price`, `cookId`) VALUES' +
     "(1, 'Meal A', 'description', 'image url', NOW(), 5, 6.50, 1)," +
-    "(2, 'Meal B', 'description', 'image url', NOW(), 5, 6.50, 1);"
+    "(2, 'Meal B', 'description', 'image url', NOW(), 5, 6.50, 1);" */
 
 describe('Users API', () => {
     //
@@ -108,6 +108,7 @@ describe('Users API', () => {
         // En hier komen meer testcases
     })
 
+    /*
     describe('UC-303 Lijst van maaltijden opvragen /api/meal', () => {
         //
         beforeEach((done) => {
@@ -152,5 +153,5 @@ describe('Users API', () => {
                 })
         })
         // En hier komen meer testcases
-    })
+    })*/
 })
