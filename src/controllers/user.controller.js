@@ -8,13 +8,13 @@ const assert = require('assert')
  * In dit geval zijn de attributen functies.
  */
 module.exports = {
-    // createMovie is een attribuut dat als waarde een functie heeft.
-    createMovie: (req, res, next) => {
-        // Hier gebruiken we nu de inmem database module om een movie toe te voegen.
+    // createUser is een attribuut dat als waarde een functie heeft.
+    createUser: (req, res, next) => {
+        // Hier gebruiken we nu de inmem database module om een user toe te voegen.
         // Optie: check vooraf of req.body wel de juiste properties/attribute bevat - gaan we later doen
 
-        // We geven in de createMovie functie de callbackfunctie mee. Die kan een error of een result teruggeven.
-        database.createMovie(req.body, (error, result) => {
+        // We geven in de createUser functie de callbackfunctie mee. Die kan een error of een result teruggeven.
+        database.createUser(req.body, (error, result) => {
             if (error) {
                 console.log(`index.js : ${error}`)
                 res.status(401).json({
@@ -23,7 +23,7 @@ module.exports = {
                 })
             }
             if (result) {
-                console.log(`index.js: movie successfully added!`)
+                console.log(`index.js: user successfully added!`)
                 res.status(200).json({
                     statusCode: 200,
                     result,
@@ -33,19 +33,19 @@ module.exports = {
     },
 
     getById: (req, res, next) => {
-        const movieId = req.params.movieId
-        console.log(`Movie met ID ${movieId} gezocht`)
-        let movie = database.filter((item) => item.id == movieId)
-        if (movie.length > 0) {
-            console.log(movie)
+        const userId = req.params.userId
+        console.log(`User met ID ${userId} gezocht`)
+        let user = database.filter((item) => item.id == userId)
+        if (user.length > 0) {
+            console.log(user)
             res.status(200).json({
                 status: 200,
-                result: movie,
+                result: user,
             })
         } else {
             res.status(401).json({
                 status: 401,
-                result: `Movie with ID ${movieId} not found`,
+                result: `User with ID ${userId} not found`,
             })
         }
     },
@@ -57,7 +57,7 @@ module.exports = {
 
             // Use the connection
             connection.query(
-                'SELECT id, name FROM meal;',
+                'SELECT id, firstName FROM user;',
                 function (error, results, fields) {
                     // When done with the connection, release it.
                     connection.release()
@@ -76,8 +76,8 @@ module.exports = {
         })
     },
 
-    validateMovie: (req, res, next) => {
-        // We krijgen een movie object binnen via de req.body.
+    validateUser: (req, res, next) => {
+        // We krijgen een user object binnen via de req.body.
         // Dat object splitsen we hier via object decomposition
         // in de afzonderlijke attributen.
         const { title, year, studio } = req.body

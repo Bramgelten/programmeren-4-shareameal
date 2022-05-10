@@ -1,5 +1,5 @@
 const express = require('express')
-const movieRoutes = require('./src/routes/movie.routes')
+const userRoutes = require('./src/routes/user.routes')
 require('dotenv').config()
 
 const port = process.env.PORT
@@ -13,7 +13,7 @@ app.all('*', (req, res, next) => {
 })
 
 // Alle routes beginnen met /api
-app.use('/api', movieRoutes)
+app.use('/api', userRoutes)
 
 app.all('*', (req, res) => {
     res.status(401).json({
