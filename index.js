@@ -30,5 +30,4 @@ app.listen(port, () => {
 
 // we exporteren de Express app server zodat we die in
 // de integration-testcases kunnen gebruiken.
-//test
 module.exports = app
