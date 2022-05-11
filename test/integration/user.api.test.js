@@ -309,12 +309,12 @@ describe('Users API', () => {
             chai.request(server)
                 .put('/api/user/1')
                 .send({
-                    firstName: 'first',
-                    lastName: 'last',
-                    street: 'street',
+                    firstName: 'Bram',
+                    lastName: 'Gelten',
+                    street: 'Slingerstraat 25',
                     city: 'Ossendrecht',
                     password: 'secret',
-                    emailAdress: 'nametest@server.nl',
+                    emailAdress: 'bramgelten@gmail.com',
                     phoneNumber: '06 23515140',
                 })
                 .end((err, res) => {
@@ -323,13 +323,13 @@ describe('Users API', () => {
                     status.should.equals(200)
                     assert.deepEqual(result, {
                         id: 1,
-                        firstName: 'first',
-                        lastName: 'last',
-                        street: 'street',
+                        firstName: 'Bram',
+                        lastName: 'Gelten',
+                        street: 'Slingerstraat 25',
                         isActive: 0,
                         city: 'Ossendrecht',
                         password: 'secret',
-                        emailAdress: 'nametest@server.nl',
+                        emailAdress: 'bramgelten@gmail.com',
                         phoneNumber: '06 23515140',
                     })
                     done()
