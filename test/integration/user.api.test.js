@@ -305,7 +305,7 @@ describe('Users API', () => {
                 })
         })
 
-        xit('TC-205-6 User succesfully updated', (done) => {
+        it('TC-205-6 User succesfully updated', (done) => {
             chai.request(server)
                 .put('/api/user/1')
                 .send({
