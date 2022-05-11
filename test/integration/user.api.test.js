@@ -236,21 +236,22 @@ describe('Users API', () => {
     describe('UC-205 Updating a user', () => {
         it('TC-205-1 should return valid error when required value is not present', (done) => {
             chai.request(server)
-                .put('/api/user/2')
+                .put('/api/user/1')
                 .send({
                     //no first name
                     lastName: 'last',
                     street: 'street',
                     city: 'city',
-                    password: 'secret',
                     emailAdress: 'name@server.be',
+                    password: 'secret',
+                    phoneNumber: '06 23515140',
                 })
                 .end((err, res) => {
-                    res.should.be.an('object')
-                    let { status, result } = res.body
-                    status.should.equals(400)
-                    result.should.be.a('string').that.equals('First name must be a string')
-                    done()
+                    res.should.be.an('object');
+                    let {statusCode, result} = res.body;
+                    statusCode.should.equals(400);
+                    result.should.be.an('string').that.equals("First name must be a string");
+                    done();
                 })
         })
 
@@ -310,6 +311,7 @@ describe('Users API', () => {
                     city: 'Ossendrecht',
                     password: 'secret',
                     emailAdress: 'name@server.nl',
+                    phoneNumber: '06 23515140',
                 })
                 .end((err, res) => {
                     res.should.be.an('object')
@@ -324,7 +326,7 @@ describe('Users API', () => {
                         city: 'Ossendrecht',
                         password: 'secret',
                         emailAdress: 'name@server.nl',
-                        phoneNumber: null,
+                        phoneNumber: '06 23515140',
                     })
                     done()
                 })
