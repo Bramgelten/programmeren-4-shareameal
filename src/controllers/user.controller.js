@@ -9,45 +9,156 @@ const assert = require('assert')
  */
 module.exports = {
     // createUser is een attribuut dat als waarde een functie heeft.
-    createUser: (req, res, next) => {
-        // Hier gebruiken we nu de inmem database module om een user toe te voegen.
-        // Optie: check vooraf of req.body wel de juiste properties/attribute bevat - gaan we later doen
 
-        // We geven in de createUser functie de callbackfunctie mee. Die kan een error of een result teruggeven.
-        database.createUser(req.body, (error, result) => {
-            if (error) {
-                console.log(`index.js : ${error}`)
-                res.status(401).json({
-                    statusCode: 401,
-                    error, // als de key en de value het zelfde kun je die zo vermelden. Hier staat eigenlijk: error: error
-                })
-            }
-            if (result) {
-                console.log(`index.js: user successfully added!`)
-                res.status(200).json({
-                    statusCode: 200,
-                    result,
-                })
-            }
+    //UC-201
+    createUser: (req, res) => {
+        let user = req.body
+        dbconnection.getConnection(function (err, connection) {
+            if (err) throw err
+            connection.query(
+                'INSERT INTO user (firstName, lastName, street, city, phoneNumber, emailAdress, password) VALUES(?, ?, ?, ?, ?, ?, ?);',
+                [
+                    user.firstName,
+                    user.lastName,
+                    user.street,
+                    user.city,
+                    user.phoneNumber,
+                    user.emailAdress,
+                    user.password,
+                ],
+                function (error, result, fields) {
+                    if (error) {
+                        connection.release()
+                        res.status(409).json({
+                            status: 409,
+                            result: `A user with ${user.emailAdress} already exists`,
+                        })
+                    } else {
+                        connection.release()
+                        res.status(201).json({
+                            status: 201,
+                            result: `User has been added`,
+                        })
+                    }
+                }
+            )
+        })
+    },
+    //UC-203
+    getUserProfile: (req, res) => {
+        res.status(203).json({
+            status: 203,
+            result: 'This endpoint has not been defined yet.',
         })
     },
 
-    getById: (req, res, next) => {
+    //UC-204
+    getUserById: (req, res) => {
         const userId = req.params.userId
-        console.log(`User met ID ${userId} gezocht`)
-        let user = database.filter((item) => item.id == userId)
-        if (user.length > 0) {
-            console.log(user)
-            res.status(200).json({
-                status: 200,
-                result: user,
-            })
-        } else {
-            res.status(401).json({
-                status: 401,
-                result: `User with ID ${userId} not found`,
-            })
-        }
+        console.log(`User with ID ${userId} requested`)
+        dbconnection.getConnection(function (err, connection) {
+            if (err) throw err
+            connection.query(
+                'SELECT * FROM user WHERE id = ?;',
+                [userId],
+                function (error, results, fields) {
+                    connection.release()
+                    if (results.length > 0) {
+                        res.status(200).json({
+                            status: 200,
+                            result: results[0],
+                        })
+                    } else {
+                        res.status(404).json({
+                            status: 404,
+                            result: `User with ID ${userId} could not be found`,
+                        })
+                    }
+                }
+            )
+        })
+    },
+
+    //UC-206
+    deleteUser: (req, res) => {
+        const userId = req.params.userId
+        let user
+        console.log(`User with ID ${userId} requested to be deleted`)
+        dbconnection.getConnection(function (err, connection) {
+            if (err) throw err
+
+            connection.query(
+                'DELETE FROM user WHERE id = ?;',
+                [userId],
+                function (error, results, fields) {
+                    connection.release()
+                    if (error) throw error
+
+                    if (results.affectedRows > 0) {
+                        res.status(200).json({
+                            status: 200,
+                            result: `User with ID ${userId} succesfully deleted`,
+                        })
+                    } else {
+                        res.status(400).json({
+                            status: 400,
+                            result: `User with ID ${userId} not found, and could not be deleted`,
+                        })
+                    }
+                }
+            )
+        })
+    },
+
+    //UC-205
+    updateUser: (req, res) => {
+        const userId = req.params.userId
+        const updateUser = req.body
+        console.log(`User with ID ${userId} requested to be updated`)
+        dbconnection.getConnection(function (err, connection) {
+            if (err) throw err
+            connection.query(
+                'UPDATE user SET firstName=?, lastName=?, isActive=?, emailAdress=?, password=?, phoneNumber=?, street=?, city=? WHERE id = ?;',
+                [
+                    updateUser.firstName,
+                    updateUser.lastName,
+                    updateUser.isActive,
+                    updateUser.emailAdress,
+                    updateUser.password,
+                    updateUser.phoneNumber,
+                    updateUser.street,
+                    updateUser.city,
+                    userId,
+                ],
+                function (error, results, fields) {
+                    if (error) {
+                        res.status(401).json({
+                            status: 401,
+                            result: `Updating user not possible, provided email already taken`,
+                        })
+                        return
+                    }
+                    if (results.affectedRows > 0) {
+                        connection.query(
+                            'SELECT id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber FROM user WHERE id = ?;',
+                            [userId],
+                            function (error, results, fields) {
+                                res.status(200).json({
+                                    status: 200,
+                                    result: results[0],
+                                })
+                            }
+                        )
+                    } else {
+                        res.status(400).json({
+                            status: 400,
+                            result: `Updating user not possible, user with ID ${userId} does not exist`,
+                        })
+                    }
+                }
+            )
+            connection.release()
+        })
     },
 
     getAll: (req, res, next) => {
@@ -57,7 +168,7 @@ module.exports = {
 
             // Use the connection
             connection.query(
-                'SELECT id, firstName FROM user;',
+                'SELECT * FROM user;',
                 function (error, results, fields) {
                     // When done with the connection, release it.
                     connection.release()
@@ -80,12 +191,32 @@ module.exports = {
         // We krijgen een user object binnen via de req.body.
         // Dat object splitsen we hier via object decomposition
         // in de afzonderlijke attributen.
-        const { title, year, studio } = req.body
+        const { firstName, lastName, city, emailAdress, phonenumber } = req.body
         try {
             // assert is een nodejs library om attribuutwaarden te valideren.
             // Bij een true gaan we verder, bij een false volgt een exception die we opvangen.
-            assert.equal(typeof title, 'string', 'title must be a string')
-            assert.equal(typeof year, 'number', 'year must be a number')
+            assert.match(
+                emailAdress,
+                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+                'The emailaddress is not valid'
+            )
+
+            assert.equal(
+                typeof firstName,
+                'string',
+                'First name must be a string'
+            )
+            assert.equal(
+                typeof lastName,
+                'string',
+                'Last name must be a string'
+            )
+            assert.equal(typeof city, 'string', 'City must be a string')
+            assert.equal(
+                typeof emailAdress,
+                'string',
+                'Emailadress must be a string'
+            )
             // als er geen exceptions waren gaan we naar de next routehandler functie.
             next()
         } catch (err) {
