@@ -161,6 +161,7 @@ module.exports = {
         })
     },
 
+    //UC-202
     getAll: (req, res, next) => {
         console.log('getAll aangeroepen')
         dbconnection.getConnection(function (err, connection) {

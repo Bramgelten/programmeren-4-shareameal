@@ -194,6 +194,145 @@ describe('Users API', () => {
         })
     })
 
+    describe("UC-202 Overview of users/getting all users /api/user", ()=> {
+
+        it("TC-202-1 Anything that makes it so zero users result must return an empty list ", (done) => {
+            chai.request(server).get("/api/user?name=souhieu").send({
+            })
+            .end((err,res) => {
+                res.should.be.an("object")
+                let {status, result} = res.body;
+                status.should.equals(200)
+                assert.deepEqual(result, [])
+                done();
+            });
+        });
+
+        it("TC-202-2 Show two users", (done) => {
+            chai.request(server).get("/api/user").send({
+            })
+            .end((err,res) => {
+                res.should.be.an("object")
+                let {status, result} = res.body;
+                status.should.equals(200)
+                assert.deepEqual(result, [
+                    {
+                        id: 1,
+                        firstName: 'Mariëtte',
+                        lastName: 'van den Dullemen',
+                        isActive: 1,
+                        emailAdress: 'm.vandullemen@server.nl',
+                        password: 'pfefejW41!',
+                        phoneNumber: '0687629321',
+                        roles: 'editor,guest',
+                        street: 'Groenstraat 10',
+                        city: 'Rotterdam',
+                    },
+                    {
+                        id: 2,                          
+                        firstName: 'Bram',             
+                        lastName: 'Gelten',           
+                        isActive: 0,                    
+                        emailAdress: 'bramgelten@gmail.com', 
+                        password: 'sdf234SFDF!',         
+                        phoneNumber: '0623515140',      
+                        roles: 'editor,guest',          
+                        street: 'Slingerstraat 25',    
+                        city: 'Ossendrecht'  
+                    }
+                ])
+                done();
+            });
+        });
+
+        it("TC-202-3 Search for non-existing name while getting all users", (done) => {
+            chai.request(server).get("/api/user?name=sjjhekgrgr").send({
+            })
+            .end((err,res) => {
+                res.should.be.an("object")
+                let {status, result} = res.body;
+                status.should.equals(200)
+                assert.deepEqual(result, [])
+                done();
+            });
+        });
+
+        it("TC-202-4 Search for users with isActive=false", (done) => {
+            chai.request(server).get("/api/user?isActive=false").send({
+            })
+            .end((err,res) => {
+                res.should.be.an("object")
+                let {status, result} = res.body;
+                status.should.equals(200)
+                assert.deepEqual(result, [
+                    {
+                        id: 2,                          
+                        firstName: 'Bram',             
+                        lastName: 'Gelten',           
+                        isActive: 0,                    
+                        emailAdress: 'bramgelten@gmail.com', 
+                        password: 'sdf234SFDF!',         
+                        phoneNumber: '0623515140',      
+                        roles: 'editor,guest',          
+                        street: 'Slingerstraat 25',    
+                        city: 'Ossendrecht'
+                    }
+                ]);
+                done();
+            });
+        });
+
+        it("TC-202-5 Search for users with isActive=true", (done) => {
+            chai.request(server).get("/api/user?isActive=true").send({
+            })
+            .end((err,res) => {
+                res.should.be.an("object")
+                let {status, result} = res.body;
+                status.should.equals(200)
+                assert.deepEqual(result, [
+                    {
+                        id: 1,
+                        firstName: 'Mariëtte',
+                        lastName: 'van den Dullemen',
+                        isActive: 1,
+                        emailAdress: 'm.vandullemen@server.nl',
+                        password: 'pfefejW41!',
+                        phoneNumber: '0687629321',
+                        roles: 'editor,guest',
+                        street: 'Groenstraat 10',
+                        city: 'Rotterdam',
+                    }
+                ]);
+                done();
+            });
+        });
+
+        it("TC-202-6 Search for users with existing name as searchterm", (done) => {
+            chai.request(server).get("/api/user?name=Bram").send({
+            })
+            .end((err,res) => {
+                res.should.be.an("object")
+                let {status, result} = res.body;
+                status.should.equals(200)
+                assert.deepEqual(result, [
+                    {
+                        id: 2,                          
+                        firstName: 'Bram',             
+                        lastName: 'Gelten',           
+                        isActive: 0,                    
+                        emailAdress: 'bramgelten@gmail.com', 
+                        password: 'sdf234SFDF!',         
+                        phoneNumber: '0623515140',      
+                        roles: 'editor,guest',          
+                        street: 'Slingerstraat 25',    
+                        city: 'Ossendrecht'
+                    }
+                ]);
+                done();
+            });
+        });
+    });
+
     describe('UC-204 Requesting details of a user', () => {
         it('TC-204-2 User ID does not exist', (done) => {
             chai.request(server)
@@ -314,6 +453,7 @@ describe('Users API', () => {
                     street: 'Slingerstraat 25',
                     city: 'Ossendrecht',
                     password: 'secret',
+                    isActive: 0,
                     emailAdress: 'bramgelten@gmail.com',
                     phoneNumber: '06 23515140',
                 })
