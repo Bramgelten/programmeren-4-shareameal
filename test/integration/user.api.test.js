@@ -234,10 +234,8 @@ describe('Users API', () => {
     })
 
     describe('UC-205 Updating a user', () => {
-        xit('TC-205-1 should return valid error when required value is not present', (done) => {
-            chai.request(server)
-                .put('/api/user/1')
-                .send({
+        it('TC-205-1 should return valid error when required value is not present', (done) => {
+            chai.request(server).put('/api/user/1').send({
                     //no first name
                     lastName: 'last',
                     street: 'street',
@@ -247,11 +245,17 @@ describe('Users API', () => {
                     phoneNumber: '06 23515140',
                 })
                 .end((err, res) => {
-                    res.should.be.an('object');
-                    let {statusCode, result} = res.body;
-                    statusCode.should.equals(400);
-                    result.should.be.an('string').that.equals("First name must be a string");
-                    done();
+                    assert.ifError(err)
+                    res.should.have.status(400)
+                    res.should.be.an('object')
+
+                    res.body.should.be.an('object').that.has.all.keys('statusCode', 'error')
+
+                    let { statusCode, error } = res.body
+                    statusCode.should.be.an('number')
+                    error.should.be.an('string').that.contains('First name must be a string')
+
+                    done()
                 })
         })
 
