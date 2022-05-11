@@ -234,7 +234,7 @@ describe('Users API', () => {
     })
 
     describe('UC-205 Updating a user', () => {
-        it('TC-205-1 should return valid error when required value is not present', (done) => {
+        xit('TC-205-1 should return valid error when required value is not present', (done) => {
             chai.request(server)
                 .put('/api/user/1')
                 .send({
@@ -301,7 +301,7 @@ describe('Users API', () => {
                 })
         })
 
-        it('TC-205-6 User succesfully updated', (done) => {
+        xit('TC-205-6 User succesfully updated', (done) => {
             chai.request(server)
                 .put('/api/user/1')
                 .send({

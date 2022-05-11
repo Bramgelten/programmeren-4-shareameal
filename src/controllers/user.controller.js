@@ -195,28 +195,11 @@ module.exports = {
         try {
             // assert is een nodejs library om attribuutwaarden te valideren.
             // Bij een true gaan we verder, bij een false volgt een exception die we opvangen.
-            assert.match(
-                emailAdress,
-                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-                'The emailaddress is not valid'
-            )
-
-            assert.equal(
-                typeof firstName,
-                'string',
-                'First name must be a string'
-            )
-            assert.equal(
-                typeof lastName,
-                'string',
-                'Last name must be a string'
-            )
+            assert.match(emailAdress,/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,'The emailaddress is not valid')
+            assert.equal(typeof firstName,'string','First name must be a string')
+            assert.equal(typeof lastName,'string','Last name must be a string')
             assert.equal(typeof city, 'string', 'City must be a string')
-            assert.equal(
-                typeof emailAdress,
-                'string',
-                'Emailadress must be a string'
-            )
+            assert.equal(typeof emailAdress,'string','Emailadress must be a string')
             // als er geen exceptions waren gaan we naar de next routehandler functie.
             next()
         } catch (err) {
