@@ -314,7 +314,7 @@ describe('Users API', () => {
                     street: 'street',
                     city: 'Ossendrecht',
                     password: 'secret',
-                    emailAdress: 'name@server.nl',
+                    emailAdress: 'nametest@server.nl',
                     phoneNumber: '06 23515140',
                 })
                 .end((err, res) => {
@@ -329,7 +329,7 @@ describe('Users API', () => {
                         isActive: 0,
                         city: 'Ossendrecht',
                         password: 'secret',
-                        emailAdress: 'name@server.nl',
+                        emailAdress: 'nametest@server.nl',
                         phoneNumber: '06 23515140',
                     })
                     done()
