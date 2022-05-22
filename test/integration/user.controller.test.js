@@ -12,13 +12,10 @@ const jwtSecretKey = require('../../src/config/config').jwtSecretKey
 chai.should();
 chai.use(chaiHttp);
 
-//token to use for tests that need authentication token to pass, will expire in a week or 2
-//valid token
 const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQ3LCJpYXQiOjE2NTI5NjM1NDUsImV4cCI6MTY1NDAwMDM0NX0.6m-xqHSnb1ekPubW6-t0Fbpxaxuo3LxypI4cPz-dEOE"
 
 describe("Manage Users /api/user",() => {
     
-    //completely empties database before starting with tests, so tests start with a clean database
     before((done) => {
         dbconnection.getConnection(function(err, connection) {
             if (err) throw err;
@@ -41,7 +38,7 @@ describe("Manage Users /api/user",() => {
                 if (err) throw err;
                 connection.query('DELETE FROM user;', (error, result, field) => {
                     connection.query('ALTER TABLE user AUTO_INCREMENT = 1;', (error, result, field) => {
-                        connection.query('INSERT INTO user (id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);', [1, 'Mariëtte', 'van den Dullemen', 'Groenstraat 10', 'Rotterdam' , 1, 'm.vandullemen@server.nl', 'pfefejW41', '0687629321'], (error, result, field) => {
+                        connection.query('INSERT INTO user (id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);', [1, 'Riekkus', 'Zantboer', 'Krommeweg 9', 'Steenbergen' , 1, 'b.gelten@server.nl', 'pfefejW41', '0653416150'], (error, result, field) => {
                             connection.release();
                             done();
                         });
@@ -53,11 +50,11 @@ describe("Manage Users /api/user",() => {
         it("TC-201-1 When a required input is missing when creating a user, a valid error should be returned", (done) => {
             chai.request(server).post("/api/user").send({
                 //firstName not present
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                password: "wvqOertE5",
-                emailAdress: "chevy@gmail.com"
+                lastName: "Gelten",
+                street: "Slingerstraat 25",
+                city: "Ossendrecht",
+                password: "asdfFff99",
+                emailAdress: "bramgelten@gmail.com"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -70,12 +67,12 @@ describe("Manage Users /api/user",() => {
 
         it("TC-201-2 When the Emailadress format is invalid, a valid error should be returned", (done) => {
             chai.request(server).post("/api/user").send({
-                firstName: "Chevy",
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                password: "wvqOertE5",
-                emailAdress: "chevy.gmail.com"
+                    //no first name
+                    lastName: 'Gelten',
+                    street: 'Slingerstraat 25',
+                    city: 'Ossendrecht',
+                    password: 'ddffDD896',
+                    emailAdress: 'bramgeltengmail.com',
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -88,12 +85,12 @@ describe("Manage Users /api/user",() => {
 
         it("TC-201-3 When the password format is invalid, a valid error should be returned", (done) => {
             chai.request(server).post("/api/user").send({
-                firstName: "Chevy",
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                password: "secret",
-                emailAdress: "chevy@gmail.com"
+                firstName: 'Bram',
+                lastName: 'Gelten',
+                street: 'Slingerstraat 25',
+                city: 'Ossendrecht',
+                password: 'dfd4445SAD!',
+                emailAdress: 'bramgeltengmail.com',
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -106,12 +103,12 @@ describe("Manage Users /api/user",() => {
 
         it("TC-201-4 When the user (email) already exists, a valid error should be returned", (done) => {
             chai.request(server).post("/api/user").send({
-                firstName: "Chevy",
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                password: "wvqOertE5",
-                emailAdress: "m.vandullemen@server.nl"
+                firstName: 'Bram',
+                lastName: 'Gelten',
+                street: 'Slingerstraat 25',
+                city: 'Ossendrecht',
+                password: 'asdfFff99',
+                emailAdress: 'b.gelten@server.nl',
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -121,16 +118,16 @@ describe("Manage Users /api/user",() => {
                 done();
             });
         });
-        //token not yet taken into consideration
+
         it("TC-201-5 User has been succesfully added", (done) => {
             chai.request(server).post("/api/user").send({
-                firstName: "Chevy",
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                phoneNumber: "0651160300",
-                password: "wvqOertE5",
-                emailAdress: "chevy@gmail.com"
+                firstName: "Bram",
+                lastName: "Gelten",
+                street: "Slingerstraat 25",
+                city: "Ossendrecht",
+                phoneNumber: "0623515140",
+                password: "asdfFff99",
+                emailAdress: "bramgelten@gmail.com"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -138,15 +135,15 @@ describe("Manage Users /api/user",() => {
                 status.should.equals(201)
                 assert.deepEqual(result, {
                     id: 2,                          
-                    firstName: 'Chevy',             
-                    lastName: 'Rietveld',           
+                    firstName: 'Bram',             
+                    lastName: 'Gelten',           
                     isActive: false,                    
-                    emailAdress: 'chevy@gmail.com', 
-                    password: 'wvqOertE5',
-                    phoneNumber: "0651160300",            
+                    emailAdress: 'bramgelten@gmail.com', 
+                    password: 'asdfFff99',
+                    phoneNumber: "0623515140",            
                     roles: 'editor,guest',          
-                    street: 'Van Wenastraat 31',    
-                    city: 'Giessenburg'
+                    street: 'Slingerstraat 25',    
+                    city: 'Ossendrecht'
                 })
                 done();
             });
@@ -174,15 +171,15 @@ describe("Manage Users /api/user",() => {
                 status.should.equals(200)
                 assert.deepEqual(result, {
                     id: 2,                          
-                    firstName: 'Chevy',             
-                    lastName: 'Rietveld',           
+                    firstName: 'Bram',             
+                    lastName: 'Gelten',           
                     isActive: 1,                    
-                    emailAdress: 'chevy@gmail.com', 
-                    password: 'wvqOertE5',
-                    phoneNumber: "0651160300",            
+                    emailAdress: 'bramgelten@gmail.com', 
+                    password: 'asdfFff99',
+                    phoneNumber: "0623515140",            
                     roles: 'editor,guest',          
-                    street: 'Van Wenastraat 31',    
-                    city: 'Giessenburg'
+                    street: 'Slingerstraat 25',    
+                    city: 'Ossendrecht'
                 })
                 done();
             });
@@ -203,12 +200,12 @@ describe("Manage Users /api/user",() => {
         });
 
         it("TC-204-2 User ID doesnt exist", (done) => {
-            chai.request(server).get("/api/user/356783").auth(token, { type: 'bearer' })
+            chai.request(server).get("/api/user/9999").auth(token, { type: 'bearer' })
             .end((err,res) => {
                 res.should.be.an("object")
                 let {status, message} = res.body;
                 status.should.equals(404)
-                message.should.be.a("string").that.equals("User with ID 356783 could not be found");
+                message.should.be.a("string").that.equals("User with ID 9999 could not be found");
                 done();
             });
         });
@@ -221,15 +218,15 @@ describe("Manage Users /api/user",() => {
                 status.should.equals(200)
                 assert.deepEqual(result, {
                     id: 1,
-                    firstName: 'Mariëtte',
-                    lastName: 'van den Dullemen',
+                    firstName: 'Riekkus',
+                    lastName: 'Zantboer',
                     isActive: 1,
-                    emailAdress: 'm.vandullemen@server.nl',
+                    emailAdress: 'b.gelten@server.nl',
                     password: 'pfefejW41',
-                    phoneNumber: '0687629321',
+                    phoneNumber: '0653416150',
                     roles: 'editor,guest',
-                    street: 'Groenstraat 10',
-                    city: 'Rotterdam',
+                    street: 'Krommeweg 9',
+                    city: 'Steenbergen',
                     })
                 done();
             });
@@ -241,12 +238,12 @@ describe("Manage Users /api/user",() => {
         it("TC-205-1 When a required input is missing when updating a user, a valid error should be returned ", (done) => {
             chai.request(server).put("/api/user/2").auth(token, { type: 'bearer' }).send({
                 //firstName is missing
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                password: "wvqOertE5",
-                phoneNumber: "0651160300",
-                emailAdress: "chevy@gmail.com"
+                lastName: "Gelten",
+                street: "Slingerstraat 25",
+                city: "Ossendrect",
+                password: "asdfFff99",
+                phoneNumber: "0623515140",
+                emailAdress: "bramgelten@gmail.com"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -259,13 +256,13 @@ describe("Manage Users /api/user",() => {
 
         it("TC-205-3 Invalid phonenumber when updating user", (done) => {
             chai.request(server).put("/api/user/2").auth(token, { type: 'bearer' }).send({
-                firstName: "Chevy",
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                password: "wvqOertE5",
+                firstName: "Bram",
+                lastName: "Gelten",
+                street: "Slingerstraat",
+                city: "Ossendrecht",
+                password: "asdfFff99",
                 phoneNumber: "4958",
-                emailAdress: "chevy@gmail.com"
+                emailAdress: "Bram@gmail.com"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -278,13 +275,13 @@ describe("Manage Users /api/user",() => {
 
         it("TC-205-4 User requested to be updated doesnt exist", (done) => {
             chai.request(server).put("/api/user/999").auth(token, { type: 'bearer' }).send({
-                firstName: "Chevy",
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
-                password: "wvqOertE5",
-                phoneNumber: "0651160300",
-                emailAdress: "chevy@gmail.com"
+                firstName: "Bram",
+                lastName: "Gelten",
+                street: "Slingerstraat 25",
+                city: "Ossendrecht",
+                password: "asdfFff99",
+                phoneNumber: "0623515140",
+                emailAdress: "Bram@gmail.com"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -310,14 +307,14 @@ describe("Manage Users /api/user",() => {
 
         it("TC-205-6 User succesfully updated", (done) => {
             chai.request(server).put("/api/user/2").auth(token, { type: 'bearer' }).send({
-                firstName: "Chevy",
-                lastName: "Rietveld",
-                street: "Van Wenastraat 31",
-                city: "Giessenburg",
+                firstName: "Bram",
+                lastName: "Gelten",
+                street: "Slingerstraat 25",
+                city: "Ossendrecht",
                 isActive: 0,
-                password: "wvqOertE5",
-                phoneNumber: "0651160300",
-                emailAdress: "chevy@gmail.com"
+                password: "asdfFff99",
+                phoneNumber: "0623515140",
+                emailAdress: "Bram@gmail.com"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -325,15 +322,15 @@ describe("Manage Users /api/user",() => {
                 status.should.equals(200)
                 assert.deepEqual(result, {
                     id: 2,                          
-                    firstName: 'Chevy',             
-                    lastName: 'Rietveld',           
+                    firstName: 'Bram',             
+                    lastName: 'Gelten',           
                     isActive: 0,                    
-                    emailAdress: 'chevy@gmail.com', 
-                    password: 'wvqOertE5',         
-                    phoneNumber: '0651160300',      
+                    emailAdress: 'Bram@gmail.com', 
+                    password: 'asdfFff99',         
+                    phoneNumber: '0623515140',      
                     roles: 'editor,guest',          
-                    street: 'Van Wenastraat 31',    
-                    city: 'Giessenburg'                           
+                    street: 'Slingerstraat 25',    
+                    city: 'Ossendrecht'                           
                     })
                 done();
             });
@@ -403,7 +400,7 @@ describe("Manage Users /api/user",() => {
         });
 
         it("TC-202-6 Search for users with existing name as searchterm", (done) => {
-            chai.request(server).get("/api/user?firstName=Chevy").auth(token, { type: 'bearer' }).send({
+            chai.request(server).get("/api/user?firstName=Riekkus").auth(token, { type: 'bearer' }).send({
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -419,7 +416,7 @@ describe("Manage Users /api/user",() => {
 
         it("TC-101-1 Required input missing when trying to login", (done) => {
             chai.request(server).post("/api/auth/login").send({
-                emailAdress: "chevy@gmail.com"
+                emailAdress: "Bram@gmail.com"
                 //password not present
             })
             .end((err,res) => {
@@ -434,7 +431,7 @@ describe("Manage Users /api/user",() => {
         it("TC-101-2 Invalid emailAdress when trying to login", (done) => {
             chai.request(server).post("/api/auth/login").send({
                 emailAdress: "invalid",
-                password: "wvqOertE5"
+                password: "asdfFff99"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -447,7 +444,7 @@ describe("Manage Users /api/user",() => {
 
         it("TC-101-3 Invalid password when trying to login", (done) => {
             chai.request(server).post("/api/auth/login").send({
-                emailAdress: "chevy@gmail.com",
+                emailAdress: "Bram@gmail.com",
                 password: "invalid"
             })
             .end((err,res) => {
@@ -476,8 +473,8 @@ describe("Manage Users /api/user",() => {
 
         it("TC-101-5 User succesfully logged in", (done) => {
             chai.request(server).post("/api/auth/login").send({
-                emailAdress: "chevy@gmail.com",
-                password: "wvqOertE5"
+                emailAdress: "Bram@gmail.com",
+                password: "asdfFff99"
             })
             .end((err,res) => {
                 res.should.be.an("object")
@@ -485,14 +482,14 @@ describe("Manage Users /api/user",() => {
                 status.should.equals(200)
                 assert.deepEqual(result, {
                     id: 2,                          
-                    firstName: 'Chevy',             
-                    lastName: 'Rietveld',           
+                    firstName: 'Bram',             
+                    lastName: 'Gelten',           
                     isActive: false,                    
-                    emailAdress: 'chevy@gmail.com',          
-                    phoneNumber: '0651160300',      
+                    emailAdress: 'Bram@gmail.com',          
+                    phoneNumber: '0623515140',      
                     roles: 'editor,guest',          
-                    street: 'Van Wenastraat 31',    
-                    city: 'Giessenburg',                    
+                    street: 'Slingerstraat 25',    
+                    city: 'Ossendrecht',                    
                     token: result.token                                                
                     })
                 done();
@@ -508,7 +505,7 @@ describe("Manage Users /api/user",() => {
                 connection.query('DELETE FROM user;', (error, result, field) => {
                     connection.query('ALTER TABLE user AUTO_INCREMENT = 2;', (error, result, field) => {
                         connection.query('INSERT INTO user (id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);', [1, 'Mariëtte', 'van den Dullemen', 'Groenstraat 10', 'Rotterdam' , 1, 'm.vandullemen@server.nl', 'pfefejW41', '0687629321'], (error, result, field) => {
-                            connection.query('INSERT INTO user (id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);', [47, 'Chevy', 'Rietveld', 'Groenstraat 10', 'Rotterdam' , 1, 'chevy@gmail.com', 'pfefejW41', '0687629321'], (error, result, field) => {
+                            connection.query('INSERT INTO user (id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);', [47, 'Bram', 'Gelten', 'Slingerstraat 25', 'Ossendrecht' , 1, 'bramgelten@gmail.com', 'pfefejW41', '0623515140'], (error, result, field) => {
                                 connection.release();
                                 done();
                             });
