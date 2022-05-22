@@ -1,5 +1,8 @@
 const express = require('express')
 const userRoutes = require('./src/routes/user.routes')
+const authRoutes = require('./src/routes/authentication.routes')
+const dbconnection = require('./database/dbconnection')
+const logger = require('./src/config/config').logger
 require('dotenv').config()
 
 const port = process.env.PORT
@@ -8,12 +11,13 @@ app.use(express.json())
 
 app.all('*', (req, res, next) => {
     const method = req.method
-    console.log(`Method ${method} is aangeroepen`)
+    logger.debug(`Method ${method} is aangeroepen`)
     next()
 })
 
 // Alle routes beginnen met /api
 app.use('/api', userRoutes)
+app.use('/api', authRoutes)
 
 app.all('*', (req, res) => {
     res.status(401).json({
@@ -23,9 +27,26 @@ app.all('*', (req, res) => {
 })
 
 // Hier moet je nog je Express errorhandler toevoegen.
+app.use((err, req, res, next) => {
+    logger.debug('Error handler called.')
+    res.status(500).json({
+        statusCode: 500,
+        message: err.toString(),
+    })
+})
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
+    logger.debug(`Example app listening on port ${port}`)
+})
+
+process.on('SIGINT', () => {
+    logger.debug('SIGINT signal received: closing HTTP server')
+    dbconnection.end((err) => {
+        logger.debug('Database connection closed')
+    })
+    app.close(() => {
+        logger.debug('HTTP server closed')
+    })
 })
 
 // we exporteren de Express app server zodat we die in

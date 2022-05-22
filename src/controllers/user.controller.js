@@ -1,6 +1,6 @@
-const database = require('../../database/inmemdb')
 const dbconnection = require('../../database/dbconnection')
 const assert = require('assert')
+const logger = require('../config/config').logger
 
 /**
  * We exporteren hier een object. Dat object heeft attributen met een waarde.
@@ -44,12 +44,22 @@ module.exports = {
             )
         })
     },
+
     //UC-203
     getUserProfile: (req, res) => {
-        res.status(203).json({
-            status: 203,
-            result: 'This endpoint has not been defined yet.',
-        })
+        const userId = req.userId;
+        logger.debug(`Personal profile of user with ID ${userId} requested`);
+        dbconnection.getConnection(function(err, connection) {
+            if (err) throw err; 
+            connection.query('SELECT * FROM user WHERE id = ?;', [userId], function (error, results, fields) {
+                connection.release();
+
+                res.status(200).json({
+                    status: 200,
+                    result: results[0],
+                });
+            });
+        });
     },
 
     //UC-204
@@ -162,60 +172,83 @@ module.exports = {
     },
 
     //UC-202
-    getAll: (req, res, next) => {
-        console.log('getAll aangeroepen')
-        dbconnection.getConnection(function (err, connection) {
-            if (err) throw err // not connected!
-
-            // Use the connection
-            connection.query(
-                'SELECT * FROM user;',
-                function (error, results, fields) {
-                    // When done with the connection, release it.
-                    connection.release()
-
-                    // Handle error after the release.
-                    if (error) throw error
-
-                    // Don't use the connection here, it has been returned to the pool.
-                    console.log('#results = ', results.length)
-                    res.status(200).json({
-                        statusCode: 200,
-                        results: results,
-                    })
+    getAllUsers:(req,res) => {
+        let query = 'SELECT * FROM user;';
+        if(/\?.+/.test(req.url)){
+            const searchTerms = req.query;
+            const firstName = searchTerms.firstName
+            let isActive = searchTerms.isActive
+            if(isActive != undefined){
+                if(isActive == "true"){
+                    isActive=1;
+                } else {
+                    isActive=0;
                 }
-            )
-        })
+            }
+
+            if(firstName != undefined && isActive != undefined){
+                query = `SELECT * FROM user WHERE firstName = '${firstName}' AND isActive = ${isActive}`;
+            } else if (firstName == undefined && isActive != undefined){
+                query = `SELECT * FROM user WHERE isActive = ${isActive};`;
+            } else {
+                query = `SELECT * FROM user WHERE firstName = '${firstName}';`;
+            }
+        };
+        dbconnection.getConnection(function(err, connection) {
+            if (err) throw err; 
+            logger.debug(query);
+            connection.query(query, function (error, results, fields) {
+                if (error) throw error; 
+                connection.release();
+                logger.debug('Amount of results: ',results.length);
+                for (let i = 0; i < results.length; i++) {
+                    results[i].isActive = (results[i].isActive) ? true : false;
+                }
+                res.status(200).json({
+                    status: 200,
+                    result: results,
+                });
+            });
+        });
     },
 
     validateUser: (req, res, next) => {
-        // We krijgen een user object binnen via de req.body.
-        // Dat object splitsen we hier via object decomposition
-        // in de afzonderlijke attributen.
-        const { firstName, lastName, city, emailAdress, phonenumber } = req.body
-        try {
-            // assert is een nodejs library om attribuutwaarden te valideren.
-            // Bij een true gaan we verder, bij een false volgt een exception die we opvangen.
-            assert.match(emailAdress,/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,'The emailaddress is not valid')
-            assert.equal(typeof firstName,'string','First name must be a string')
-            assert.equal(typeof lastName,'string','Last name must be a string')
-            assert.equal(typeof city, 'string', 'City must be a string')
-            assert.equal(typeof emailAdress,'string','Emailadress must be a string')
-            // als er geen exceptions waren gaan we naar de next routehandler functie.
-            next()
-        } catch (err) {
-            // Hier kom je als een assert failt.
-            console.log(`Error message: ${err.message}`)
-            console.log(`Error code: ${err.code}`)
-            // Hier geven we een generiek errorobject terug. Dat moet voor alle
-            // foutsituaties dezelfde structuur hebben. Het is nog mooier om dat
-            // via de Express errorhandler te doen; dan heb je één plek waar je
-            // alle errors afhandelt.
-            // zie de Express handleiding op https://expressjs.com/en/guide/error-handling.html
-            res.status(400).json({
-                statusCode: 400,
-                error: err.message,
-            })
+        let user = req.body;
+        let { firstName, lastName, street, city, password, emailAdress } = user;
+        try{
+            assert.match(password, /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/, "Password must contain min. 8 characters which contains at least one lower- and uppercase letter, and one digit");
+            assert.match(emailAdress, /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "The provided Emailadress format is invalid");
+
+            assert(typeof firstName === "string", "First name must be a string");
+            assert(typeof lastName === "string", "Last name must be a string");
+            assert(typeof password === "string", "Password must be a string");
+            assert(typeof emailAdress === "string", "Email adress must be a string");
+            assert(typeof street === "string", "Street must be a string");
+            assert(typeof city === "string", "City must be a string");
+            next();
+        } catch(err){
+            const error={
+                status: 400,
+                message: err.message
+            };
+            next(error);
+        }
+    },
+
+    validateUpdateUser:(req,res,next)=>{
+        let user = req.body;
+        let { phoneNumber } = user;
+        try{
+            assert(typeof phoneNumber === "string", "Phonenumber must be a string");
+            //regex for valid dutch phonenumber
+            assert.match(phoneNumber, /(^\+[0-9]{2}|^\+[0-9]{2}\(0\)|^\(\+[0-9]{2}\)\(0\)|^00[0-9]{2}|^0)([0-9]{9}$|[0-9\-\s]{10}$)/, "Phonenumber must be 10 digits long, example: 0612345678")
+            next();
+        } catch(err){
+            const error={
+                status: 400,
+                message: err.message
+            };
+            next(error);
         }
     },
 }

@@ -1,4 +1,5 @@
 const mysql = require('mysql2')
+const { logger } = require('../src/config/config')
 require('dotenv').config()
 
 const dbConfig = {
@@ -19,15 +20,15 @@ console.log(dbConfig)
 const pool = mysql.createPool(dbConfig)
 
 pool.on('connection', function (connection) {
-    console.log(`Connected to database '${connection.config.database}'`)
+    logger.debug(`Connected to database '${connection.config.database}'`)
 })
 
 pool.on('acquire', function (connection) {
-    console.log('Connection %d acquired', connection.threadId)
+    logger.debug('Connection %d acquired', connection.threadId)
 })
 
 pool.on('release', function (connection) {
-    console.log('Connection %d released', connection.threadId)
+    logger.debug('Connection %d released', connection.threadId)
 })
 
 module.exports = pool
