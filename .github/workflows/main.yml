@@ -29,20 +29,16 @@ jobs:
                   sudo apt-get install -y mysql-client
                   mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "SHOW DATABASES;"
                   mysql -uroot -p${{ env.MYSQL_ROOT_PASSWORD }} -e "CREATE DATABASE ${{env.DB_DATABASE}};"
-
             - name: Import the database
               run: |
                   mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} < share-a-meal.sql
                   mysql -uroot -p${{env.MYSQL_ROOT_PASSWORD}} ${{env.DB_DATABASE}} -e "SHOW TABLES;"
-
             - name: npm install
               run: |
                   npm install
-
             - name: npm test
               run: |
                   npm test -- --DB_PASSWORD $MYSQL_ROOT_PASSWORD --DB_USER root --DB_NAME $DB_DATABASE
-
     deploy:
         needs: integrationtests
         runs-on: ubuntu-latest
@@ -53,5 +49,5 @@ jobs:
             - uses: akhileshns/heroku-deploy@v3.12.12
               with:
                   heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-                  heroku_app_name: brgeltenshareameal
-                  heroku_email: ${{secrets.HEROKU_USER_EMAIL}}
+                  heroku_app_name: chevy-shareameal-prog4
+                  heroku_email: c.rietveld2@student.avans.nl
