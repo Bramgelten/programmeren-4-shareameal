@@ -1,47 +1,61 @@
 const database = require('../../database/inmemdb')
 const dbconnection = require('../../database/dbconnection')
 const assert = require('assert')
+const pool = require('../../dbconnection')
+const bcrypt = require('bcrypt')
+const saltRounds = 10
 
-/**
- * We exporteren hier een object. Dat object heeft attributen met een waarde.
- * Die waarde kan een string, number, boolean, array, maar ook een functie zijn.
- * In dit geval zijn de attributen functies.
- */
-module.exports = {
-    // createUser is een attribuut dat als waarde een functie heeft.
+const emailRegex =
+    /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+const passwordRegex =
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
 
+let userController = {
     //UC-201
     createUser: (req, res) => {
-        let user = req.body
-        dbconnection.getConnection(function (err, connection) {
-            if (err) throw err
-            connection.query(
-                'INSERT INTO user (firstName, lastName, street, city, phoneNumber, emailAdress, password) VALUES(?, ?, ?, ?, ?, ?, ?);',
+        const user = req.body
+        emailadres = req.body.emailAdress
+        wachtwoord = req.body.password
+
+        voornaam = req.body.firstName
+        achternaam = req.body.lastName
+        straat = req.body.street
+        plaats = req.body.city
+        nummer = req.body.phoneNumber
+
+        bcrypt.hash(wachtwoord, saltRounds, function (err, hash) {
+            let sqlRegister =
+                'INSERT INTO user (firstName, lastName, street, city, phoneNumber, emailAdress, password) VALUES ?;'
+            let valuesRegister = [
                 [
-                    user.firstName,
-                    user.lastName,
-                    user.street,
-                    user.city,
-                    user.phoneNumber,
-                    user.emailAdress,
-                    user.password,
+                    voornaam,
+                    achternaam,
+                    straat,
+                    plaats,
+                    nummer,
+                    emailadres,
+                    hash,
                 ],
-                function (error, result, fields) {
-                    if (error) {
-                        connection.release()
-                        res.status(409).json({
-                            status: 409,
-                            result: `A user with ${user.emailAdress} already exists`,
-                        })
-                    } else {
-                        connection.release()
-                        res.status(201).json({
-                            status: 201,
-                            result: `User has been added`,
-                        })
+            ]
+
+            pool.query(sqlRegister, [valuesRegister], (dbError, result) => {
+                if (dbError) {
+                    logger.debug(dbError.message)
+                    const error = {
+                        status: 409,
+                        message: 'User has not been added to database',
+                        result: 'User is niet toegevoegd in database',
                     }
+                    next(error)
+                    return
+                } else {
+                    res.status(201).json({
+                        status: 201,
+                        message: 'User has been added to the database',
+                        result: { id: result.inserId, ...user },
+                    })
                 }
-            )
+            })
         })
     },
     //UC-203
@@ -196,11 +210,27 @@ module.exports = {
         try {
             // assert is een nodejs library om attribuutwaarden te valideren.
             // Bij een true gaan we verder, bij een false volgt een exception die we opvangen.
-            assert.match(emailAdress,/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,'The emailaddress is not valid')
-            assert.equal(typeof firstName,'string','First name must be a string')
-            assert.equal(typeof lastName,'string','Last name must be a string')
+            assert.match(
+                emailAdress,
+                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+                'The emailaddress is not valid'
+            )
+            assert.equal(
+                typeof firstName,
+                'string',
+                'First name must be a string'
+            )
+            assert.equal(
+                typeof lastName,
+                'string',
+                'Last name must be a string'
+            )
             assert.equal(typeof city, 'string', 'City must be a string')
-            assert.equal(typeof emailAdress,'string','Emailadress must be a string')
+            assert.equal(
+                typeof emailAdress,
+                'string',
+                'Emailadress must be a string'
+            )
             // als er geen exceptions waren gaan we naar de next routehandler functie.
             next()
         } catch (err) {
@@ -219,3 +249,5 @@ module.exports = {
         }
     },
 }
+
+module.exports = userController
