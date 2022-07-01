@@ -1,6 +1,7 @@
 const express = require('express')
 const dbconnection = require('./dbconnection')
 const userRoutes = require('./src/routes/user.routes')
+const mealRoutes = require('./src/routes/meal.routes')
 const authRoutes = require('./src/routes/auth.routes')
 require('dotenv').config()
 
@@ -16,6 +17,7 @@ app.all('*', (req, res, next) => {
 
 // Alle routes beginnen met /api
 app.use('/api', userRoutes)
+app.use('/api', mealRoutes)
 app.use('/api', authRoutes)
 
 app.all('*', (req, res) => {

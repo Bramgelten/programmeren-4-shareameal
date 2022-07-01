@@ -59,37 +59,59 @@ let userController = {
         })
     },
     //UC-203
-    getUserProfile: (req, res) => {
-        res.status(203).json({
-            status: 203,
-            result: 'This endpoint has not been defined yet.',
+    getUserProfile: (req, res, next) => {
+        const userId = req.userId
+        logger.debug(`Personal profile of user with ID ${userId} requested`)
+
+        sqlGetProfile = 'SELECT * FROM user WHERE id = ?;'
+
+        pool.query(sqlGetProfile, userId, function (error, results) {
+            if (error) throw error
+            else {
+                res.status(200).json({
+                    status: 200,
+                    result: results[0],
+                })
+            }
         })
+
+        // dbconnection.getConnection(function (err, connection) {
+        //     if (err) throw err
+        //     connection.query(
+        //         'SELECT * FROM user WHERE id = ?;',
+        //         [userId],
+        //         function (error, results, fields) {
+        //             connection.release()
+
+        //             res.status(200).json({
+        //                 status: 200,
+        //                 result: results[0],
+        //             })
+        //         }
+        //     )
+        // })
     },
 
     //UC-204
     getUserById: (req, res) => {
         const userId = req.params.userId
         console.log(`User with ID ${userId} requested`)
-        dbconnection.getConnection(function (err, connection) {
-            if (err) throw err
-            connection.query(
-                'SELECT * FROM user WHERE id = ?;',
-                [userId],
-                function (error, results, fields) {
-                    connection.release()
-                    if (results.length > 0) {
-                        res.status(200).json({
-                            status: 200,
-                            result: results[0],
-                        })
-                    } else {
-                        res.status(404).json({
-                            status: 404,
-                            result: `User with ID ${userId} could not be found`,
-                        })
-                    }
-                }
-            )
+        let sqlGetByID = 'SELECT * FROM user WHERE id = ?;'
+
+        pool.query(sqlGetByID, userId, function (error, results) {
+            if (error) throw error
+
+            if (results.length > 0) {
+                res.status(200).json({
+                    status: 200,
+                    result: results[0],
+                })
+            } else {
+                res.status(404).json({
+                    status: 404,
+                    result: `User with ID ${userId} could not be found`,
+                })
+            }
         })
     },
 
@@ -98,29 +120,21 @@ let userController = {
         const userId = req.params.userId
         let user
         console.log(`User with ID ${userId} requested to be deleted`)
-        dbconnection.getConnection(function (err, connection) {
-            if (err) throw err
+        let sqlDelete = 'DELETE FORM user WHERE id = ?;'
+        pool.query(sqlDelete, userId, function (error, results) {
+            if (error) throw error
 
-            connection.query(
-                'DELETE FROM user WHERE id = ?;',
-                [userId],
-                function (error, results, fields) {
-                    connection.release()
-                    if (error) throw error
-
-                    if (results.affectedRows > 0) {
-                        res.status(200).json({
-                            status: 200,
-                            result: `User with ID ${userId} succesfully deleted`,
-                        })
-                    } else {
-                        res.status(400).json({
-                            status: 400,
-                            result: `User with ID ${userId} not found, and could not be deleted`,
-                        })
-                    }
-                }
-            )
+            if (results.affectedRows > 0) {
+                res.status(200).json({
+                    status: 200,
+                    message: `User with ID ${userId} succesfully deleted`,
+                })
+            } else {
+                res.status(400).json({
+                    status: 400,
+                    message: `User does not exist`,
+                })
+            }
         })
     },
 
@@ -129,87 +143,69 @@ let userController = {
         const userId = req.params.userId
         const updateUser = req.body
         console.log(`User with ID ${userId} requested to be updated`)
-        dbconnection.getConnection(function (err, connection) {
-            if (err) throw err
-            connection.query(
-                'UPDATE user SET firstName=?, lastName=?, isActive=?, emailAdress=?, password=?, phoneNumber=?, street=?, city=? WHERE id = ?;',
-                [
-                    updateUser.firstName,
-                    updateUser.lastName,
-                    updateUser.isActive,
-                    updateUser.emailAdress,
-                    updateUser.password,
-                    updateUser.phoneNumber,
-                    updateUser.street,
-                    updateUser.city,
-                    userId,
-                ],
-                function (error, results, fields) {
-                    if (error) {
-                        res.status(401).json({
-                            status: 401,
-                            result: `Updating user not possible, provided email already taken`,
-                        })
-                        return
-                    }
-                    if (results.affectedRows > 0) {
-                        connection.query(
-                            'SELECT id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber FROM user WHERE id = ?;',
-                            [userId],
-                            function (error, results, fields) {
-                                res.status(200).json({
-                                    status: 200,
-                                    result: results[0],
-                                })
-                            }
-                        )
-                    } else {
-                        res.status(400).json({
-                            status: 400,
-                            result: `Updating user not possible, user with ID ${userId} does not exist`,
-                        })
-                    }
+        let sqlUpdate =
+            'UPDATE user SET firstName=?, lastName=?, isActive=?, emailAdress=?, password=?, phoneNumber=?, street=?, city=? WHERE id = ?;'
+        let sqlUpdatedUser =
+            'SELECT id, firstName, lastName, street, city, isActive, emailAdress, password, phoneNumber FROM user WHERE id = ?;'
+        pool.query(
+            sqlUpdate,
+            [
+                updateUser.firstName,
+                updateUser.lastName,
+                updateUser.isActive,
+                updateUser.emailAdress,
+                updateUser.phoneNumber,
+                updateUser.street,
+                updateUser.city,
+                userId,
+            ],
+            function (error, results) {
+                if (error) {
+                    res.status(200).json({
+                        status: 401,
+                        message: 'Update failed, provided email already taken',
+                    })
+                } else if (results.affectedRows > 0) {
+                    pool.query(
+                        sqlUpdatedUser,
+                        [userId],
+                        function (error, results) {
+                            res.status(200).json({
+                                status: 200,
+                                result: results[0],
+                            })
+                        }
+                    )
+                } else {
+                    res.status(400).json({
+                        status: 200,
+                        result: `Updating user not possible, user with ID ${userId} does not exist`,
+                    })
                 }
-            )
-            connection.release()
-        })
+            }
+        )
     },
 
     //UC-202
     getAll: (req, res, next) => {
         console.log('getAll aangeroepen')
-        dbconnection.getConnection(function (err, connection) {
-            if (err) throw err // not connected!
+        let sqlGetall = 'SELECT * FROM User;'
 
-            // Use the connection
-            connection.query(
-                'SELECT * FROM user;',
-                function (error, results, fields) {
-                    // When done with the connection, release it.
-                    connection.release()
+        pool.query(sqlGetall, function (error, results) {
+            if (error) {
+                next(error)
+            }
 
-                    // Handle error after the release.
-                    if (error) throw error
-
-                    // Don't use the connection here, it has been returned to the pool.
-                    console.log('#results = ', results.length)
-                    res.status(200).json({
-                        statusCode: 200,
-                        results: results,
-                    })
-                }
-            )
+            res.status(200).json({
+                status: 200,
+                result: results,
+            })
         })
     },
 
     validateUser: (req, res, next) => {
-        // We krijgen een user object binnen via de req.body.
-        // Dat object splitsen we hier via object decomposition
-        // in de afzonderlijke attributen.
         const { firstName, lastName, city, emailAdress, phonenumber } = req.body
         try {
-            // assert is een nodejs library om attribuutwaarden te valideren.
-            // Bij een true gaan we verder, bij een false volgt een exception die we opvangen.
             assert.match(
                 emailAdress,
                 /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
@@ -231,17 +227,10 @@ let userController = {
                 'string',
                 'Emailadress must be a string'
             )
-            // als er geen exceptions waren gaan we naar de next routehandler functie.
             next()
         } catch (err) {
-            // Hier kom je als een assert failt.
             console.log(`Error message: ${err.message}`)
             console.log(`Error code: ${err.code}`)
-            // Hier geven we een generiek errorobject terug. Dat moet voor alle
-            // foutsituaties dezelfde structuur hebben. Het is nog mooier om dat
-            // via de Express errorhandler te doen; dan heb je één plek waar je
-            // alle errors afhandelt.
-            // zie de Express handleiding op https://expressjs.com/en/guide/error-handling.html
             res.status(400).json({
                 statusCode: 400,
                 error: err.message,
